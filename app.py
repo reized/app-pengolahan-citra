@@ -83,3 +83,44 @@ if uploaded_file is not None:
             st.image(adjusted_image.astype(np.uint8), caption="RGB Adjusted Image", use_column_width=True)
             st.write("Histogram of RGB Adjusted Image")
             plot_histogram(adjusted_image, "Histogram - RGB Adjusted Image")
+    elif feature == "Negative":
+        # Membuat efek negatif pada gambar
+        negative_image = 255 - image_array
+        with col2:
+            st.image(negative_image, caption="Negative Image", use_column_width=True)
+            st.write("Histogram of Negative Image")
+            plot_histogram(negative_image, "Histogram - Negative")
+
+    elif feature == "Smoothing":
+        # Slider untuk mengatur ukuran kernel smoothing
+        kernel_size = st.sidebar.slider("Kernel Size", min_value=1, max_value=15, value=5, step=2)
+
+        # Melakukan smoothing (blur) menggunakan GaussianBlur
+        smoothed_image = cv2.GaussianBlur(image_array, (kernel_size, kernel_size), 0)
+        with col2:
+            st.image(smoothed_image, caption="Smoothed Image", use_column_width=True)
+            st.write("Histogram of Smoothed Image")
+            plot_histogram(smoothed_image, "Histogram - Smoothed")
+
+    elif feature == "Salt & Pepper":
+        # Slider untuk mengatur proporsi noise
+        noise_prob = st.sidebar.slider("Noise Probability", min_value=0.01, max_value=0.1, value=0.05)
+
+        # Menambahkan noise salt & pepper
+        noisy_image = image_array.copy()
+        total_pixels = noisy_image.size
+        num_salt = int(total_pixels * noise_prob / 2)
+        num_pepper = int(total_pixels * noise_prob / 2)
+
+        # Menambahkan salt (putih)
+        salt_coords = [np.random.randint(0, i-1, num_salt) for i in noisy_image.shape]
+        noisy_image[salt_coords[0], salt_coords[1], :] = 255
+
+        # Menambahkan pepper (hitam)
+        pepper_coords = [np.random.randint(0, i-1, num_pepper) for i in noisy_image.shape]
+        noisy_image[pepper_coords[0], pepper_coords[1], :] = 0
+
+        with col2:
+            st.image(noisy_image, caption="Salt & Pepper Noise Image", use_column_width=True)
+            st.write("Histogram of Salt & Pepper Image")
+            plot_histogram(noisy_image, "Histogram - Salt & Pepper")
