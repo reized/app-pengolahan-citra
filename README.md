@@ -4,14 +4,13 @@
 
 ## Installation Guide
 
-### **1. Clone the Repository**
-Clone the project from GitHub to your local machine:
+### *1. Clone the Repository*
 ```bash
 git clone https://github.com/reized/app-pengolahan-citra.git
 cd app-pengolahan-citra
 ```
 
-2. Set Up a Virtual Environment
+*2. Set Up a Virtual Environment*
 ```bash
 Create and activate a virtual environment:
 
