@@ -12,8 +12,6 @@ cd app-pengolahan-citra
 
 2. Set Up a Virtual Environment
 ```bash
-Create and activate a virtual environment:
-
 # Create virtual environment
 python -m venv venv
 
