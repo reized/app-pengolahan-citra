@@ -9,8 +9,10 @@ Clone the project from GitHub to your local machine:
 ```bash
 git clone https://github.com/reized/app-pengolahan-citra.git
 cd app-pengolahan-citra
+```
 
 2. Set Up a Virtual Environment
+```bash
 Create and activate a virtual environment:
 
 # Create virtual environment
@@ -18,10 +20,13 @@ python -m venv venv
 
 # Activate on Windows
 venv\Scripts\activate
-
+```
 
 3. Install Dependencies
+```bash
 pip install -r requirements.txt
-
-4. Run the Application
+```
+5. Run the Application
+```bash
 streamlit run app.py
+```
