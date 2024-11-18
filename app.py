@@ -1,133 +1,171 @@
 import streamlit as st
 import cv2
-from PIL import Image
+from PIL import Image, ImageEnhance
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Judul aplikasi
-st.title("Image Processing with RGB Sliders and Histogram")
+st.title("Image Processing App")
+
+# Pilih tab upload atau kamera
+tabs = st.tabs(["Upload Image", "Live Camera"])
+
+active_tab = 0 if "Upload Image" in st.session_state else 1
 
 # Sidebar untuk memilih fitur
 feature = st.sidebar.selectbox(
     "Choose a feature",
-    ("Upload Image", "Grayscale", "Edge Detection", "RGB Adjustment", "Negative", "Smoothing", "Salt & Pepper")
+    ("Default", "Grayscale", "Edge Detection", "Negative", "Gaussian Blur", "Smoothing", "Salt & Pepper", 
+     "RGB Adjustment", "Brightness", "Sharpness", "Equalization", "Rotate", "Flip")
 )
 
-# Fungsi untuk meng-upload gambar
-uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
-
-if uploaded_file is not None:
-    # Menampilkan gambar yang di-upload
-    image = Image.open(uploaded_file)
-    image_array = np.array(image)
-
-    # Fungsi untuk menampilkan histogram
-    def plot_histogram(image, title="Histogram"):
-        fig, ax = plt.subplots()
-        if len(image.shape) == 2:  # Grayscale
-            ax.hist(image.ravel(), bins=256, color='gray')
-        else:  # RGB
-            colors = ('r', 'g', 'b')
-            for i, color in enumerate(colors):
-                ax.hist(image[:, :, i].ravel(), bins=256, color=color, alpha=0.5)
-        ax.set_title(title)
-        ax.set_xlabel("Pixel Value")
-        ax.set_ylabel("Frequency")
-        st.pyplot(fig)
-
-    # Layout kolom untuk gambar asli dan hasil pengolahan
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.image(image, caption="Original Image", use_column_width=True)
-        st.write("Histogram of Original Image")
-        plot_histogram(image_array, "Histogram - Original Image")
-
-    # Fitur berdasarkan pilihan pengguna
-    if feature == "Grayscale":
-        # Konversi ke grayscale
-        gray_image = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY)
-        with col2:
-            st.image(gray_image, caption="Grayscale Image", use_column_width=True)
-            st.write("Histogram of Grayscale Image")
-            plot_histogram(gray_image, "Histogram - Grayscale")
-
+# Fungsi untuk memproses gambar berdasarkan fitur
+def process_image(image, feature):
+    if feature == "Default":
+        return image
+    elif feature == "Grayscale":
+        return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     elif feature == "Edge Detection":
-        # Slider untuk threshold deteksi tepi Canny
-        threshold1 = st.sidebar.slider("Threshold 1", min_value=0, max_value=255, value=100)
-        threshold2 = st.sidebar.slider("Threshold 2", min_value=0, max_value=255, value=200)
-
-        # Konversi ke grayscale sebelum deteksi tepi
-        gray_image = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY)
-
-        # Deteksi tepi
-        edges = cv2.Canny(gray_image, threshold1=threshold1, threshold2=threshold2)
-        with col2:
-            st.image(edges, caption="Edge Detection", use_column_width=True)
-            st.write("Histogram of Edge Detection")
-            plot_histogram(edges, "Histogram - Edge Detection")
-
-    elif feature == "RGB Adjustment":
-        # Slider untuk mengatur intensitas masing-masing kanal RGB
-        r_factor = st.sidebar.slider("Red Intensity", min_value=0, max_value=255, value=255)
-        g_factor = st.sidebar.slider("Green Intensity", min_value=0, max_value=255, value=255)
-        b_factor = st.sidebar.slider("Blue Intensity", min_value=0, max_value=255, value=255)
-
-        # Mengubah intensitas kanal warna
-        adjusted_image = image_array.copy()
-        adjusted_image[:, :, 0] = np.clip(adjusted_image[:, :, 0] * (r_factor / 255), 0, 255)
-        adjusted_image[:, :, 1] = np.clip(adjusted_image[:, :, 1] * (g_factor / 255), 0, 255)
-        adjusted_image[:, :, 2] = np.clip(adjusted_image[:, :, 2] * (b_factor / 255), 0, 255)
-
-        with col2:
-            st.image(adjusted_image.astype(np.uint8), caption="RGB Adjusted Image", use_column_width=True)
-            st.write("Histogram of RGB Adjusted Image")
-            plot_histogram(adjusted_image, "Histogram - RGB Adjusted Image")
-
+        gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        threshold1 = st.sidebar.slider("Threshold 1", 0, 255, 100, key=f"edge1_{active_tab}")
+        threshold2 = st.sidebar.slider("Threshold 2", 0, 255, 200, key=f"edge2_{active_tab}")
+        return cv2.Canny(gray_image, threshold1, threshold2)
     elif feature == "Negative":
-        # Membuat efek negatif pada gambar
-        negative_image = 255 - image_array
-        with col2:
-            st.image(negative_image, caption="Negative Image", use_column_width=True)
-            st.write("Histogram of Negative Image")
-            plot_histogram(negative_image, "Histogram - Negative")
-
-
+        return 255 - image
+    elif feature == "Gaussian Blur":
+        kernel_size = st.sidebar.slider("Kernel Size", 3, 15, step=2, value=5)
+        return cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
     elif feature == "Smoothing":
-        # Slider untuk mengatur ukuran kernel smoothing
-        kernel_size = st.sidebar.slider("Kernel Size", min_value=1, max_value=15, value=5, step=2)
-    
-        # Melakukan smoothing (blur) menggunakan GaussianBlur
-        smoothed_image = cv2.GaussianBlur(image_array, (kernel_size, kernel_size), 0)
-        
-        # Pastikan hasil smoothing tetap dalam tipe uint8
-        smoothed_image = np.clip(smoothed_image, 0, 255).astype(np.uint8)
-        
-        with col2:
-            st.image(smoothed_image, caption="Smoothed Image", use_column_width=True)
-            st.write("Histogram of Smoothed Image")
-            plot_histogram(smoothed_image, "Histogram - Smoothed")
-
-
+        kernel_size = st.sidebar.slider("Kernel Size", 3, 15, step=2, value=5)
+        return cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
     elif feature == "Salt & Pepper":
-        # Slider untuk mengatur proporsi noise
-        noise_prob = st.sidebar.slider("Noise Probability", min_value=0.01, max_value=0.1, value=0.05)
-
-        # Menambahkan noise salt & pepper
-        noisy_image = image_array.copy()
+        noise_prob = st.sidebar.slider("Noise Probability", 0.01, 0.1, 0.05)
+        noisy_image = image.copy()
         total_pixels = noisy_image.size // noisy_image.shape[-1]
         num_salt = int(noise_prob * total_pixels / 2)
         num_pepper = int(noise_prob * total_pixels / 2)
-
-        # Menambahkan salt (putih)
         coords = [np.random.randint(0, i - 1, num_salt) for i in noisy_image.shape[:2]]
         noisy_image[coords[0], coords[1], :] = 255
-
-        # Menambahkan pepper (hitam)
         coords = [np.random.randint(0, i - 1, num_pepper) for i in noisy_image.shape[:2]]
         noisy_image[coords[0], coords[1], :] = 0
+        return noisy_image
+    elif feature == "RGB Adjustment":
+        r_factor = st.sidebar.slider("Red Intensity", 0, 255, 255)
+        g_factor = st.sidebar.slider("Green Intensity", 0, 255, 255)
+        b_factor = st.sidebar.slider("Blue Intensity", 0, 255, 255)
+        adjusted_image = image.copy()
+        adjusted_image[:, :, 0] = np.clip(adjusted_image[:, :, 0] * (r_factor / 255), 0, 255)
+        adjusted_image[:, :, 1] = np.clip(adjusted_image[:, :, 1] * (g_factor / 255), 0, 255)
+        adjusted_image[:, :, 2] = np.clip(adjusted_image[:, :, 2] * (b_factor / 255), 0, 255)
+        return adjusted_image
+    elif feature == "Brightness":
+        brightness_factor = st.sidebar.slider("Brightness", 0.5, 2.0, 1.0)
+        enhancer = ImageEnhance.Brightness(Image.fromarray(image))
+        return np.array(enhancer.enhance(brightness_factor))
+    elif feature == "Sharpness":
+        sharpness_factor = st.sidebar.slider("Sharpness", 0.5, 2.0, 1.0)
+        enhancer = ImageEnhance.Sharpness(Image.fromarray(image))
+        return np.array(enhancer.enhance(sharpness_factor))
+    elif feature == "Equalization":
+        gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        return cv2.equalizeHist(gray_image)
+    elif feature == "Rotate":
+        angle = st.sidebar.slider("Rotation Angle", 0, 360, 0)
+        return np.array(Image.fromarray(image).rotate(angle))
+    elif feature == "Flip":
+        flip_type = st.sidebar.selectbox("Flip Type", ["Horizontal", "Vertical", "Both"])
+        if flip_type == "Horizontal":
+            return cv2.flip(image, 1)
+        elif flip_type == "Vertical":
+            return cv2.flip(image, 0)
+        elif flip_type == "Both":
+            return cv2.flip(image, -1)
 
+# Fungsi untuk menampilkan histogram
+def show_histogram(image, title=None):
+    if title is None:
+        title = f"Histogram - {feature}"
+
+    fig, ax = plt.subplots()
+    if len(image.shape) == 2:  # Grayscale
+        ax.hist(image.ravel(), bins=256, color='gray')
+    else:  # RGB
+        colors = ('r', 'g', 'b')
+        for i, color in enumerate(colors):
+            ax.hist(image[:, :, i].ravel(), bins=256, color=color, alpha=0.5)
+    ax.set_title(title)
+    ax.set_xlabel("Pixel Value")
+    ax.set_ylabel("Frequency")
+    
+    st.pyplot(fig)
+
+# Tab 1: Upload Image
+with tabs[0]:
+    uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
+
+    if uploaded_file:
+        image = Image.open(uploaded_file)
+        image_array = np.array(image)
+        processed_image = process_image(image_array, feature)
+        
+        col1, col2 = st.columns(2)
+
+        # Kolom 1: Gambar asli
+        with col1:
+            st.write("Original Image")
+            st.image(image, use_container_width=True)
+            st.write("Histogram - Original Image")
+            show_histogram(image_array, title="Histogram - Original Image")
+
+        # Kolom 2: Gambar hasil manipulasi
         with col2:
-            st.image(noisy_image, caption="Salt & Pepper Noise Image", use_column_width=True)
-            st.write("Histogram of Salt & Pepper Image")
-            plot_histogram(noisy_image, "Histogram - Salt & Pepper")
+            st.write(f"Processed Image - {feature}")
+            if len(processed_image.shape) == 2:  # Grayscale
+                st.image(processed_image, use_container_width=True, clamp=True, channels="GRAY")
+            else:
+                st.image(processed_image, use_container_width=True) 
+            st.write(f"Histogram - {feature}")
+            show_histogram(processed_image)
+
+# Tab 2: Live Camera
+with tabs[1]:
+    run_camera = st.checkbox("Start Camera")
+
+if run_camera:
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        st.error("Cannot access the camera.")
+    else:
+        # Placeholder untuk 2 kolom (gambar asli dan hasil)
+        placeholder = st.empty()
+
+        while run_camera:
+            ret, frame = cap.read()
+            if not ret:
+                st.error("Failed to capture image from the camera.")
+                break
+            
+            # Konversi warna BGR ke RGB
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            processed_frame = process_image(frame_rgb, feature)
+
+            # Perbarui placeholder dengan 2 kolom
+            with placeholder.container():
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write("Original Image")
+                    st.image(frame_rgb, channels="RGB", use_container_width=True)
+                    st.write("Histogram - Original Image")
+                    show_histogram(frame_rgb, title="Histogram - Original Image")
+                with col2:
+                    if len(processed_frame.shape) == 2:  # Grayscale
+                        st.write(f"Processed Image - {feature}")
+                        st.image(processed_frame, use_container_width=True, clamp=True, channels="GRAY")
+                    else:
+                        st.write(f"Processed Image - {feature}")
+                        st.image(processed_frame, channels="RGB", use_container_width=True)
+                    st.write(f"Histogram - {feature}")
+                    show_histogram(processed_frame, title=f"Histogram - Processed Image ({feature})")
+            
+        cap.release()
+        st.stop()
