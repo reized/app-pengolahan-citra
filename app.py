@@ -10,8 +10,6 @@ st.title("Image Processing App")
 # Pilih tab upload atau kamera
 tabs = st.tabs(["Upload Image", "Live Camera"])
 
-active_tab = 0 if "Upload Image" in st.session_state else 1
-
 # Sidebar untuk memilih fitur
 feature = st.sidebar.selectbox(
     "Choose a feature",
@@ -27,8 +25,8 @@ def process_image(image, feature):
         return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     elif feature == "Edge Detection":
         gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        threshold1 = st.sidebar.slider("Threshold 1", 0, 255, 100, key=f"edge1_{active_tab}")
-        threshold2 = st.sidebar.slider("Threshold 2", 0, 255, 200, key=f"edge2_{active_tab}")
+        threshold1 = st.sidebar.slider("Threshold 1", 0, 255, 100)
+        threshold2 = st.sidebar.slider("Threshold 2", 0, 255, 200)
         return cv2.Canny(gray_image, threshold1, threshold2)
     elif feature == "Negative":
         return 255 - image
