@@ -14,9 +14,7 @@ tabs = st.tabs(["Upload Image", "Live Camera"])
 # Sidebar untuk memilih fitur
 feature = st.sidebar.selectbox(
     "Choose a feature",
-    ("Default", "Grayscale", "Edge Detection", "Negative", "Gaussian Blur", 
-     "Smoothing", "Salt & Pepper", "RGB Adjustment", "Brightness", 
-     "Sharpness", "Equalization", "Rotate", "Flip")
+    ("Default", "Grayscale", "Edge Detection", "Negative", "Gaussian Blur", "Salt & Pepper", "RGB Adjustment", "Brightness", "Sharpness", "Equalization", "Rotate", "Flip")
 )
 
 # Parameter sidebar
@@ -24,7 +22,7 @@ params = {}
 if feature == "Edge Detection":
     params["threshold1"] = st.sidebar.slider("Threshold 1", 0, 255, 100, key="threshold1_edge")
     params["threshold2"] = st.sidebar.slider("Threshold 2", 0, 255, 200, key="threshold2_edge")
-elif feature in ["Gaussian Blur", "Smoothing"]:
+elif feature in ["Gaussian Blur"]:
     params["kernel_size"] = st.sidebar.slider("Kernel Size", 3, 15, step=2, value=5, key="kernel_size_blur")
 elif feature == "Salt & Pepper":
     params["noise_prob"] = st.sidebar.slider("Noise Probability", 0.01, 0.1, 0.05, key="noise_prob_salt_pepper")
@@ -52,7 +50,7 @@ def process_image(image, feature, params=None):
         return cv2.Canny(gray_image, params["threshold1"], params["threshold2"])
     elif feature == "Negative":
         return 255 - image
-    elif feature in ["Gaussian Blur", "Smoothing"]:
+    elif feature in ["Gaussian Blur"]:
         return cv2.GaussianBlur(image, (params["kernel_size"], params["kernel_size"]), 0)
     elif feature == "Salt & Pepper":
         noisy_image = image.copy()
