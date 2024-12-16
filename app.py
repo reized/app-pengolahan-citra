@@ -17,7 +17,7 @@ feature = st.sidebar.selectbox(
     ("Default", "Grayscale", "Edge Detection", "Negative", "Gaussian Blur", "Salt & Pepper", "RGB Adjustment", "Brightness", "Sharpness", "Equalization", "Rotate", "Flip")
 )
 
-# Parameter sidebar
+# Parameter untuk fitur
 params = {}
 if feature == "Edge Detection":
     params["threshold1"] = st.sidebar.slider("Threshold 1", 0, 255, 100, key="threshold1_edge")
@@ -126,7 +126,7 @@ with tabs[0]:
             st.write(f"Histogram - {feature}")
             show_histogram(processed_image, title=f"Histogram - {feature}")
 
-        # Tombol download menggunakan BytesIO
+        # Tombol untuk download hasil
         processed_image_pil = Image.fromarray(processed_image)
         buf = io.BytesIO()
         processed_image_pil.save(buf, format="PNG")
@@ -148,18 +148,18 @@ with tabs[1]:
         if not cap.isOpened():
             st.error("Cannot access the camera.")
         else:
-            placeholder = st.empty()
+            placeholder = st.empty() # Tempat menampilkan konten
 
             while run_camera:
                 ret, frame = cap.read()
                 if not ret:
-                    st.error("Failed to capture image from the camera.")
+                    st.error("Failed to read frame from the camera.")
                     break
 
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # OpenCv secara default membaca frame dari kamera dalam format BGR
                 processed_frame = process_image(frame_rgb, feature, params)
 
-                with placeholder.container():
+                with placeholder.container(): # membuat blok container yang dapat menampung elemen
                     col1, col2 = st.columns(2)
                     with col1:
                         st.write("Original Image")
@@ -177,7 +177,7 @@ with tabs[1]:
 
             cap.release()
 
-            # Tombol download untuk frame terakhir yang diproses menggunakan BytesIO
+            # Tombol download untuk frame terakhir yang diproses
             if processed_frame is not None:
                 processed_frame_pil = Image.fromarray(processed_frame)
                 buf = io.BytesIO()
